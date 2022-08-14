@@ -7,6 +7,9 @@
   "files": [
     "/dist"
   ],
+  "scripts": {
+    "publish": "rm ./dist -rf && pnpm tsc && pnpm version patch && pnpm publish"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": "./dist/index.js",
