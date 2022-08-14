@@ -15,9 +15,6 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@lib-ts-bot/checks": "@lib-ts-bot/checks",
-    "@lib-ts-bot/extensions": "@lib-ts-bot/extensions",
-    "@lib-ts-bot/utils": "@lib-ts-bot/utils",
     "discord.js": "^14.2.0"
   }
 }
