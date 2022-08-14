@@ -4,12 +4,7 @@
     "target": "es2015",
     "declaration": true,
     "outDir": "./dist",
-    "experimentalDecorators": true,
-    "paths": {
-      "checks/*": ["./dist/*"],
-      "extensions/*": ["./dist/*"],
-      "utils/*": ["./dist/*"]
-    }
+    "experimentalDecorators": true
   },
   "include": ["src/**/*"]
 }
