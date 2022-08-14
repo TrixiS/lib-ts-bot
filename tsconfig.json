@@ -4,8 +4,7 @@
     "target": "es2015",
     "declaration": true,
     "outDir": "./dist",
-    "experimentalDecorators": true,
-    "resolveJsonModule": true
+    "experimentalDecorators": true
   },
-  "include": ["src/**/*", "src/*/package.json"]
+  "include": ["src/**/*"]
 }

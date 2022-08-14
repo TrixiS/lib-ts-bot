@@ -8,20 +8,7 @@
     "/dist"
   ],
   "scripts": {
-    "publish": "rm ./dist -rf && pnpm tsc && pnpm version patch && pnpm publish --access=public"
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/*"
-      ]
-    }
-  },
-  "exports": {
-    ".": "./dist/index.js",
-    "./checks": "./dist/checks/index.js",
-    "./extensions": "./dist/extensions/index.js",
-    "./utils": "./dist/utils/index.js"
+    "p": "rm ./dist -rf && pnpm tsc && pnpm version patch && pnpm publish dist --access=public"
   },
   "devDependencies": {
     "@types/node": "^18.7.3",
