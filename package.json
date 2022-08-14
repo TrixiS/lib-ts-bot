@@ -1,0 +1,14 @@
+{
+  "name": "@trixis/lib-ts-bot",
+  "version": "1.0.0",
+  "description": "Package for Discord bots micro-framework template - https://github.com/TrixiS/base-ts-bot",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "devDependencies": {
+    "@types/node": "^18.7.3",
+    "typescript": "^4.7.4"
+  }
+}
