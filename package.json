@@ -8,6 +8,7 @@
     "/dist"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": "./dist/index.js",
     "./checks": "./dist/checks/index.js",
     "./extensions": "./dist/extensions/index.js",
