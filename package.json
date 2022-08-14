@@ -1,6 +1,6 @@
 {
   "name": "@trixis/lib-ts-bot",
-  "version": "0.1.15",
+  "version": "0.1.13",
   "description": "Package for Discord bots micro-framework template - https://github.com/TrixiS/base-ts-bot",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,8 +10,14 @@
   "scripts": {
     "publish": "rm ./dist -rf && pnpm tsc && pnpm version patch && pnpm publish --access=public"
   },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*"
+      ]
+    }
+  },
   "exports": {
-    "./package.json": "./package.json",
     ".": "./dist/index.js",
     "./checks": "./dist/checks/index.js",
     "./extensions": "./dist/extensions/index.js",
