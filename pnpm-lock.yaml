@@ -1,9 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@lib-ts-bot/checks': file:dist/checks
-  '@lib-ts-bot/extensions': file:dist/extensions
-  '@lib-ts-bot/utils': file:dist/utils
+  '@lib-ts-bot/checks': file:./dist/checks
+  '@lib-ts-bot/extensions': file:./dist/extensions
+  '@lib-ts-bot/utils': file:./dist/utils
   '@trixis/lib-ts-bot': 'link:'
   '@types/node': ^18.7.3
   discord.js: ^14.2.0
