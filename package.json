@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "discord.js": "^14.2.0",
-    "@lib-ts-bot/checks": "file:checks",
-    "@lib-ts-bot/extensions": "file:extensions",
-    "@lib-ts-bot/utils": "file:utils"
+    "@lib-ts-bot/checks": "file:./checks",
+    "@lib-ts-bot/extensions": "file:./extensions",
+    "@lib-ts-bot/utils": "file:./utils"
   }
 }
