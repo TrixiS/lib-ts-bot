@@ -1,0 +1,5 @@
+{
+  "name": "@lib-ts-bot/utils",
+  "type": "module",
+  "main": "index.js"
+}
