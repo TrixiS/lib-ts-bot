@@ -1,26 +1,51 @@
 import * as path from "path";
 import * as fs from "fs";
-import { ExtensionSubclass } from "../types";
+import { CommandSubclass, ExtensionSubclass } from "../types";
+
+export type ExtensionPayload = {
+  extensionClass: ExtensionSubclass;
+  commandClasses: CommandSubclass[];
+};
 
 export const readExtensionDirPaths = (extensionsPath: string) => {
-  const extensionPaths = fs
+  return fs
     .readdirSync(extensionsPath)
     .map((p) => path.join(extensionsPath, p))
     .filter((p) => fs.lstatSync(p).isDirectory());
-
-  return extensionPaths;
 };
 
-export const importExtensions = async (
+export const readCommandFilePaths = (extensionPath: string) => {
+  return fs
+    .readdirSync(extensionPath)
+    .filter((p) => path.parse(p).name.endsWith("command"))
+    .map((p) => path.join(extensionPath, p))
+    .filter((p) => fs.lstatSync(p).isFile());
+};
+
+export const importDefault = async (path: string) => {
+  const imported = await import(path);
+  return imported.default;
+};
+
+export const importExtension = async (
+  extensionPath: string
+): Promise<ExtensionPayload> => {
+  const extensionClass = await importDefault(extensionPath);
+  const commandFilePaths = readCommandFilePaths(extensionPath);
+  const commandClasses = await Promise.all(
+    commandFilePaths.map((commandFilePath) => importDefault(commandFilePath))
+  );
+
+  return { extensionClass, commandClasses };
+};
+
+export const importAllExtensions = async (
   extensionsPath: string
-): Promise<ExtensionSubclass[]> => {
+): Promise<ExtensionPayload[]> => {
   const extensionDirPaths = readExtensionDirPaths(extensionsPath);
-  const extensionClasses: ExtensionSubclass[] = [];
+  const extensionPayloads = await Promise.all(
+    extensionDirPaths.map((extensionPath) => importExtension(extensionPath))
+  );
 
-  for (const extensionDirPath of extensionDirPaths) {
-    const extensionClass = await import(extensionDirPath);
-    extensionClasses.push(extensionClass.default);
-  }
-
-  return extensionClasses;
+  return extensionPayloads;
 };

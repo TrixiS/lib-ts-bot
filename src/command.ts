@@ -93,7 +93,7 @@ export abstract class BaseSlashCommand<
 
   constructor(
     public readonly extension: TExtension,
-    public readonly builder: CommandBuilder
+    public readonly builder?: CommandBuilder
   ) {}
 
   private _getChecks(): CommandCheck[] {
