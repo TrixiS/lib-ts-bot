@@ -11,7 +11,7 @@
     "build": "rm ./dist -rf && pnpm tsc",
     "p": "pnpm run build && pnpm version patch && pnpm publish --access=public"
   },
-  "sdependencies": {
+  "dependencies": {
     "discord.js": "^14.2.0"
   },
   "devDependencies": {
