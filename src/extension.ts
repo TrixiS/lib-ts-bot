@@ -2,7 +2,7 @@ import { BotClient } from "./client";
 import { BaseSlashCommand } from "./command";
 import { EventHandler } from "./eventHandler";
 import { CommandSubclass } from "./types";
-import { DefaultMap } from "./utils";
+import { DefaultMap } from "./utils/defaultMap";
 
 export abstract class BaseExtension {
   private static _eventHandlers: DefaultMap<string, EventHandler<any>[]> =

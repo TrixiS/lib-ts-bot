@@ -1,1 +1,0 @@
-export { CommandHandlerExtension } from "./commandHandler";

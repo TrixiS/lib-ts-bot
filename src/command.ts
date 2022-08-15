@@ -9,7 +9,7 @@ import {
 import { BotClient } from "./client";
 import { BaseExtension } from "./extension";
 import { DefaultMap } from "./utils/defaultMap";
-import { CommandCheck } from "./checks";
+import { CommandCheck } from "./checks/checkFactory";
 import { CommandHandler } from "./commandHandler";
 
 export const runCallbackName = "run";

@@ -8,13 +8,13 @@
     "/dist"
   ],
   "scripts": {
-    "p": "rm ./dist -rf && pnpm tsc && pnpm version patch && pnpm publish dist --access=public"
+    "p": "rm ./dist -rf && pnpm tsc && pnpm version patch && pnpm publish --access=public"
+  },
+  "sdependencies": {
+    "discord.js": "^14.2.0"
   },
   "devDependencies": {
     "@types/node": "^18.7.3",
     "typescript": "^4.7.4"
-  },
-  "dependencies": {
-    "discord.js": "^14.2.0"
   }
 }
