@@ -1,7 +1,7 @@
-import { BaseSlashCommand, CommandRunOptions } from "../command";
+import { BaseSlashCommand, CommandContext } from "../command";
 import { CommandSubclass } from "../types";
 
-export type CommandCheck = (options: CommandRunOptions) => Promise<boolean>;
+export type CommandCheck = (ctx: CommandContext) => Promise<boolean>;
 
 export const checkFactory = (check: CommandCheck) => {
   return (constructor: CommandSubclass) => {

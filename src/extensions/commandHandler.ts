@@ -1,14 +1,9 @@
-import { BotClient } from "../client";
 import { BaseExtension } from "../extension";
 import { eventHandler } from "../eventHandler";
 import { ChatInputCommandInteraction, Interaction } from "discord.js";
 import { runCallbackName } from "../command";
 
 export class CommandHandlerExtension extends BaseExtension {
-  constructor(client: BotClient) {
-    super(client);
-  }
-
   @eventHandler("interactionCreate")
   async commandInteractionHandler(interaction: Interaction) {
     if (
@@ -24,13 +19,14 @@ export class CommandHandlerExtension extends BaseExtension {
       return;
     }
 
-    const runOptions = command.getRunOptions(interaction);
+    const ctx = command.getContext(interaction);
 
-    if (!(await command.runChecks(runOptions))) {
+    if (!(await command.runChecks(ctx))) {
       return;
     }
 
-    const data = await command.getData(interaction);
+    ctx.data = await command.getData(interaction);
+
     const runHandler = command.handlers.find(
       (handler) => handler.name === runCallbackName
     );
@@ -40,7 +36,7 @@ export class CommandHandlerExtension extends BaseExtension {
         return;
       }
 
-      return await runHandler.callback.call(command, runOptions, data);
+      return await runHandler.callback.call(command, ctx);
     };
 
     if (!(interaction instanceof ChatInputCommandInteraction)) {
@@ -59,7 +55,7 @@ export class CommandHandlerExtension extends BaseExtension {
         handler.group === subcommandGroup && handler.name === subcommandName
     );
 
-    await subcommandHandler?.callback.call(command, runOptions, data);
+    await subcommandHandler?.callback.call(command, ctx);
   }
 
   getSubcommandData(interaction: ChatInputCommandInteraction) {

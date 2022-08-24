@@ -120,9 +120,9 @@ export abstract class BaseSlashCommand<
     this._getHandlers().push(handler);
   }
 
-  public async runChecks(options: CommandRunOptions): Promise<boolean> {
+  public async runChecks(ctx: CommandContext): Promise<boolean> {
     for (const check of this.checks) {
-      if (!(await check(options))) {
+      if (!(await check(ctx))) {
         return false;
       }
     }
@@ -130,42 +130,40 @@ export abstract class BaseSlashCommand<
     return true;
   }
 
-  public async getData(
-    interaction: CommandInteraction
-  ): Promise<Record<string, any>> {
+  public async getData(interaction: CommandInteraction) {
     return {};
   }
 
-  public getRunOptions(interaction: CommandInteraction): CommandRunOptions {
+  public getContext(interaction: CommandInteraction): CommandContext {
     const guild = interaction.guild ?? undefined;
     const member = guild?.members.cache.get(interaction.user.id);
+
     const options =
       interaction instanceof ChatInputCommandInteraction
         ? getCommandArgumentOptions(interaction)
         : {};
 
     return {
+      client: this.extension.client,
       interaction,
       member,
       guild,
-      options,
-      client: this.extension.client
+      options
     };
   }
 }
 
-export type CommandRunOptions<
-  TInteraction = CommandInteraction,
-  TArgumentOptions = Record<string, any>
+export type CommandContext<
+  I extends CommandInteraction = CommandInteraction,
+  O extends Record<string, any> = Record<string, any>,
+  D extends Record<string, any> = Record<string, any>
 > = {
   client: BotClient;
-  interaction: TInteraction;
-  options: TArgumentOptions;
+  interaction: I;
   member?: GuildMember;
   guild?: Guild;
+  options: O;
+  data?: D;
 };
 
-export type CommandCallback = (
-  options: CommandRunOptions,
-  data: Record<string, any>
-) => Promise<any>;
+export type CommandCallback = (ctx: CommandContext) => Promise<any>;
