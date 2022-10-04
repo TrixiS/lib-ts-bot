@@ -9,3 +9,5 @@ export * from "./checks/defaultChecks";
 export * from "./extensions/commandHandler";
 export * from "./utils/defaultMap";
 export * from "./utils/loader";
+export * from "./di/container";
+export * from "./di/decorators";
