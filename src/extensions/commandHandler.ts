@@ -52,15 +52,15 @@ export class CommandHandlerExtension extends BaseExtension {
 
     const subcommandHandler = command.handlers.find(
       (handler) =>
-        handler.group === subcommandGroup && handler.name === subcommandName
+        handler.group == subcommandGroup && handler.name === subcommandName
     );
 
     await subcommandHandler?.callback.call(command, ctx);
   }
 
   getSubcommandData(interaction: ChatInputCommandInteraction) {
-    const name = interaction.options.getSubcommand(false);
-    const group = name ? interaction.options.getSubcommandGroup(false) : null;
+    const name: string | null = interaction.options.getSubcommand(false);
+    const group: string | null = interaction.options.getSubcommandGroup(false);
     return { group, name };
   }
 }
