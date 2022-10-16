@@ -4,7 +4,9 @@ import {
   ChatInputCommandInteraction,
   CommandInteractionOption,
   GuildMember,
-  Guild
+  Guild,
+  Collection,
+  ApplicationCommandDataResolvable,
 } from "discord.js";
 import { BotClient } from "./client";
 import { BaseExtension } from "./extension";
@@ -15,9 +17,8 @@ import { CommandHandler } from "./commandHandler";
 export const runCallbackName = "run";
 
 export interface CommandBuilder {
-  toJSON: () => any; // @discordjs/builders package developers are just fucking morons
-  name: string; //      that could not make their useless builders library compatible with discord.js (event it is the main package)
-  // so i have to break types and use any
+  toJSON: () => ApplicationCommandDataResolvable;
+  name: string;
 }
 
 const accumulateCommandOptions = (
@@ -74,7 +75,7 @@ const convertCommandOptionValue = (
     [ApplicationCommandOptionType.String]: resolver.getString,
     [ApplicationCommandOptionType.User]: resolver.getUser,
     [ApplicationCommandOptionType.Subcommand]: excludedOptionConverter,
-    [ApplicationCommandOptionType.SubcommandGroup]: excludedOptionConverter
+    [ApplicationCommandOptionType.SubcommandGroup]: excludedOptionConverter,
   };
 
   const converter = converters[option.type];
@@ -84,50 +85,26 @@ const convertCommandOptionValue = (
 export abstract class BaseSlashCommand<
   TExtension extends BaseExtension = BaseExtension
 > {
-  private static _checks: DefaultMap<string, CommandCheck[]> = new DefaultMap(
+  protected static _checks: DefaultMap<string, CommandCheck[]> = new DefaultMap(
     () => []
   );
 
-  private static _handlers: DefaultMap<string, CommandHandler[]> =
-    new DefaultMap(() => []);
+  protected static _handlers: DefaultMap<
+    string,
+    Collection<string, CommandHandler>
+  > = new DefaultMap(() => new Collection());
 
   constructor(
     public readonly extension: TExtension,
     public readonly builder?: CommandBuilder
   ) {}
 
-  private _getChecks(): CommandCheck[] {
+  public get checks(): ReadonlyArray<CommandCheck> {
     return BaseSlashCommand._checks.get(this.constructor.name);
   }
 
-  private _getHandlers(): CommandHandler[] {
+  public get handlers() {
     return BaseSlashCommand._handlers.get(this.constructor.name);
-  }
-
-  public get checks(): ReadonlyArray<CommandCheck> {
-    return this._getChecks();
-  }
-
-  public get handlers(): ReadonlyArray<CommandHandler> {
-    return this._getHandlers();
-  }
-
-  public addCheck(check: CommandCheck) {
-    this._getChecks().push(check);
-  }
-
-  public addHandler(handler: CommandHandler) {
-    this._getHandlers().push(handler);
-  }
-
-  public async runChecks(ctx: CommandContext): Promise<boolean> {
-    for (const check of this.checks) {
-      if (!(await check(ctx))) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   public async getData(interaction: CommandInteraction) {
@@ -148,7 +125,7 @@ export abstract class BaseSlashCommand<
       interaction,
       member,
       guild,
-      options
+      options,
     };
   }
 }

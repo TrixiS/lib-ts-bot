@@ -1,7 +1,10 @@
 import { BaseExtension } from "../extension";
 import { eventHandler } from "../eventHandler";
 import { ChatInputCommandInteraction, Interaction } from "discord.js";
-import { runCallbackName } from "../command";
+import { BaseSlashCommand, CommandContext, runCallbackName } from "../command";
+import { CommandSubclass } from "../types";
+import { CommandHandler } from "../commandHandler";
+import { CommandCheck } from "../checks/checkFactory";
 
 export class CommandHandlerExtension extends BaseExtension {
   @eventHandler("interactionCreate")
@@ -21,46 +24,65 @@ export class CommandHandlerExtension extends BaseExtension {
 
     const ctx = command.getContext(interaction);
 
-    if (!(await command.runChecks(ctx))) {
+    if (!(await this.runChecks(ctx, command.checks))) {
       return;
     }
 
     ctx.data = await command.getData(interaction);
 
-    const runHandler = command.handlers.find(
-      (handler) => handler.name === runCallbackName
+    const defaultHandler = command.handlers.get(
+      runCallbackName as keyof CommandSubclass
     );
 
-    const runDefaultHandler = async () => {
-      if (!runHandler) {
-        return;
-      }
-
-      return await runHandler.callback.call(command, ctx);
-    };
-
     if (!(interaction instanceof ChatInputCommandInteraction)) {
-      return await runDefaultHandler();
+      return await this.runHandler(command, ctx, defaultHandler);
     }
 
     const { group: subcommandGroup, name: subcommandName } =
       this.getSubcommandData(interaction);
 
     if (!subcommandName) {
-      return await runDefaultHandler();
+      return await this.runHandler(command, ctx, defaultHandler);
     }
 
-    const subcommandHandler = command.handlers.find(
+    const subcommandHandler: CommandHandler | undefined = command.handlers.find(
       (handler) =>
         handler.group == subcommandGroup && handler.name === subcommandName
     );
 
-    await subcommandHandler?.callback.call(command, ctx);
+    if (subcommandHandler) {
+      await this.runHandler(command, ctx, subcommandHandler);
+    }
   }
 
   getSubcommandData(interaction: ChatInputCommandInteraction) {
     const name: string | null = interaction.options.getSubcommand(false);
     const group: string | null = interaction.options.getSubcommandGroup(false);
     return { group, name };
+  }
+
+  public async runChecks(
+    ctx: CommandContext,
+    checks: CommandCheck[] | ReadonlyArray<CommandCheck>
+  ) {
+    for (const check of checks) {
+      if (!(await check(ctx))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public async runHandler(
+    command: BaseSlashCommand,
+    ctx: CommandContext,
+    handler: CommandHandler
+  ) {
+    if (!(await this.runChecks(ctx, handler.checks))) {
+      return;
+    }
+
+    return await handler.callback?.call(command, ctx);
   }
 }
