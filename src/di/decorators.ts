@@ -7,10 +7,9 @@ export const Injectable = (): ClassDecorator => {
 };
 
 export const Inject = (): PropertyDecorator => {
-  return (target: Object, propertyKey: string | Symbol) => {
+  return (target, propertyKey) => {
     const id = (Reflect as any).getMetadata("design:type", target, propertyKey);
     const injectable = Container.instance.get(id.prototype.constructor);
-    // TODO?: throw an error if injectable is not found
     (target as any)[propertyKey.toString()] = injectable;
   };
 };
