@@ -34,15 +34,23 @@ export class CommandHandlerExtension extends BaseExtension {
       runCallbackName as keyof CommandSubclass
     );
 
-    if (!(interaction instanceof ChatInputCommandInteraction)) {
+    const runDefaultHandler = async () => {
+      if (!defaultHandler) {
+        return;
+      }
+
       return await this.runHandler(command, ctx, defaultHandler);
+    };
+
+    if (!(interaction instanceof ChatInputCommandInteraction)) {
+      return await runDefaultHandler();
     }
 
     const { group: subcommandGroup, name: subcommandName } =
       this.getSubcommandData(interaction);
 
     if (!subcommandName) {
-      return await this.runHandler(command, ctx, defaultHandler);
+      return await runDefaultHandler();
     }
 
     const subcommandHandler: CommandHandler | undefined = command.handlers.find(
@@ -56,8 +64,8 @@ export class CommandHandlerExtension extends BaseExtension {
   }
 
   getSubcommandData(interaction: ChatInputCommandInteraction) {
-    const name: string | null = interaction.options.getSubcommand(false);
-    const group: string | null = interaction.options.getSubcommandGroup(false);
+    const name = interaction.options.getSubcommand(false);
+    const group = interaction.options.getSubcommandGroup(false);
     return { group, name };
   }
 

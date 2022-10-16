@@ -1,13 +1,13 @@
 import { CommandCheck } from "./checks/checkFactory";
 import { BaseSlashCommand, CommandCallback } from "./command";
 
-export const commandHandler = <T extends BaseSlashCommand>(
+export const commandHandler = (
   options: CommandHandlerOptions = {}
 ): MethodDecorator => {
-  return (target: T, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (target, propertyKey, descriptor) => {
     const handler: CommandHandler = {
-      callback: descriptor.value,
-      name: options.name ?? propertyKey,
+      callback: descriptor.value as CommandCallback,
+      name: options.name ?? (propertyKey as string),
       group: options.group,
       checks: [],
     };

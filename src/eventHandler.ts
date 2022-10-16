@@ -1,8 +1,6 @@
 import { BaseExtension } from "./extension";
 import { Awaitable, ClientEvents } from "discord.js";
 
-// TODO: add checks for event handlers
-
 export const eventHandler = <
   TEvent extends keyof ClientEvents,
   TExtension extends BaseExtension
@@ -16,7 +14,7 @@ export const eventHandler = <
   ) => {
     const handler: EventHandler<TEvent> = {
       event,
-      listener: descriptor.value!
+      listener: descriptor.value!,
     };
 
     const extensionEventHandlers = (BaseExtension as any)._eventHandlers.get(

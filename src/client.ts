@@ -1,6 +1,6 @@
 import { Client, ClientOptions } from "discord.js";
 import { BaseExtension } from "./extension";
-import { BaseSlashCommand } from "./command";
+import { BaseSlashCommand, CommandBuilder } from "./command";
 import { ExtensionSubclass } from "./types";
 
 export class BotClient extends Client {
@@ -20,6 +20,10 @@ export class BotClient extends Client {
   }
 
   public async registerCommand(command: BaseSlashCommand) {
+    if (!command.builder) {
+      throw new Error(`Command builder couldn't be ${command.builder}`);
+    }
+
     const commandJson = command.builder.toJSON();
     await this.application?.commands.create(commandJson);
     this._commands.set(command.builder.name, command);

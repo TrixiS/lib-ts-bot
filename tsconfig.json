@@ -6,7 +6,9 @@
     "outDir": "./dist",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true,
+    "strictNullChecks": true
   },
   "include": ["src/**/*"],
   "exclude": ["./node_modules"]
