@@ -1,15 +1,12 @@
 import { CommandInteraction } from "discord.js";
-import { CommandContext } from "../command";
-import { commandCheckFactory } from "./checkFactory";
 
-export interface CooldownBucket {
-  useCount: number;
-  expiresAt: Date;
-}
+type PromiseOrSync<T> = T | Promise<T>;
 
-export interface BaseCooldownManagerOptions {
-  readonly maxUseCount: number;
-  readonly timeoutMs: number;
+export enum CommandCooldownStrategy {
+  guild,
+  member,
+  channel,
+  user,
 }
 
 export abstract class BaseCooldownManager<
@@ -20,9 +17,7 @@ export abstract class BaseCooldownManager<
 
   protected abstract resetBucket(bucket: T): unknown;
   protected abstract incrementUseCount(bucket: T): unknown;
-  protected abstract checkBucketOnCooldown(
-    bucket: T
-  ): boolean | Promise<boolean>;
+  protected abstract checkBucketOnCooldown(bucket: T): PromiseOrSync<boolean>;
 
   protected createExpirationDate(startDate: Date) {
     return new Date(startDate.getTime() + this.options.timeoutMs);
@@ -33,51 +28,38 @@ export abstract class BaseCooldownManager<
   }
 }
 
-export enum CommandCooldownStrategy {
-  guild,
-  member,
-  channel,
-  user,
-}
+export abstract class BaseCommandCooldownManager<
+  B extends CommandCooldownBucket = CommandCooldownBucket
+> extends BaseCooldownManager<B, CommandCooldownManagerOptions> {
+  protected abstract getBucket(
+    interaction: CommandInteraction
+  ): PromiseOrSync<B>;
 
-export interface CommandCooldownBucket extends CooldownBucket {
-  userId: string;
-  guildId?: string;
-  channelId?: string;
-}
-
-export interface CommandCooldownManagerOptions
-  extends BaseCooldownManagerOptions {
-  commandId: string;
-  strategy: CommandCooldownStrategy;
-}
-
-export class CommandCooldownManager extends BaseCooldownManager<
-  CommandCooldownBucket,
-  CommandCooldownManagerOptions
-> {
-  private _buckets: CommandCooldownBucket[] = [];
-
-  protected resetBucket(bucket: CooldownBucket) {
-    bucket.useCount = 0;
-    bucket.expiresAt = this.createExpirationDateFromNow();
-  }
-
-  protected incrementUseCount(bucket: CooldownBucket) {
-    bucket.useCount++;
-  }
-
-  protected checkBucketOnCooldown(bucket: CommandCooldownBucket) {
+  protected async checkBucketOnCooldown(bucket: B) {
     const now = new Date();
 
     if (bucket.expiresAt.getTime() <= now.getTime()) {
-      this.resetBucket(bucket);
-      this.incrementUseCount(bucket);
+      await this.resetBucket(bucket);
       return false;
     }
 
     return bucket.useCount >= this.options.maxUseCount;
   }
+
+  public async checkCommandOnCooldown(interaction: CommandInteraction) {
+    const bucket = await this.getBucket(interaction);
+    const isOnCooldown = await this.checkBucketOnCooldown(bucket);
+    return { bucket, isOnCooldown };
+  }
+
+  public async recordCommandUse(interaction: CommandInteraction) {
+    const bucket = await this.getBucket(interaction);
+    await this.incrementUseCount(bucket);
+  }
+}
+
+export class MemoryCommandCooldownManager extends BaseCommandCooldownManager {
+  private _buckets: CommandCooldownBucket[] = [];
 
   private findBucket(interaction: CommandInteraction) {
     const bucketFilter = (bucket: CommandCooldownBucket) => {
@@ -99,7 +81,7 @@ export class CommandCooldownManager extends BaseCooldownManager<
     return this._buckets.find(bucketFilter);
   }
 
-  private getBucket(interaction: CommandInteraction) {
+  protected getBucket(interaction: CommandInteraction) {
     const bucket = this.findBucket(interaction);
 
     if (bucket) {
@@ -118,55 +100,39 @@ export class CommandCooldownManager extends BaseCooldownManager<
     return newBucket;
   }
 
-  public recordCommandUse(interaction: CommandInteraction) {
-    const bucket = this.getBucket(interaction);
-    this.incrementUseCount(bucket);
+  protected resetBucket(bucket: CooldownBucket) {
+    bucket.useCount = 0;
+    bucket.expiresAt = this.createExpirationDateFromNow();
   }
 
-  public checkCommandOnCooldown(interaction: CommandInteraction) {
-    const bucket = this.getBucket(interaction);
-
-    return {
-      bucket,
-      isOnCooldown: bucket && this.checkBucketOnCooldown(bucket),
-    };
+  protected incrementUseCount(bucket: CooldownBucket) {
+    bucket.useCount++;
   }
 }
 
-export type CommandCooldownOptions = Pick<
-  CommandCooldownManagerOptions,
-  "timeoutMs" | "maxUseCount" | "strategy"
-> & {
-  cooldownCallback?: (
-    ctx: CommandContext,
-    bucket: CommandCooldownBucket
-  ) => Promise<unknown>;
-};
+export interface CooldownBucket {
+  useCount: number;
+  expiresAt: Date;
+}
 
-export const commandCooldown = (options: CommandCooldownOptions) => {
-  let cooldownManager: CommandCooldownManager;
+export interface CommandCooldownBucket extends CooldownBucket {
+  userId: string;
+  guildId?: string | null;
+  channelId?: string | null;
+}
 
-  return commandCheckFactory(async (ctx) => {
-    if (!cooldownManager) {
-      cooldownManager = new CommandCooldownManager({
-        commandId: ctx.interaction.commandId!,
-        ...options,
-      });
-    }
+export interface BaseCooldownManagerOptions {
+  readonly maxUseCount: number;
+  readonly timeoutMs: number;
+}
 
-    const { bucket, isOnCooldown } = cooldownManager.checkCommandOnCooldown(
-      ctx.interaction
-    );
+export interface CommandCooldownManagerOptions
+  extends BaseCooldownManagerOptions {
+  commandId: string;
+  strategy: CommandCooldownStrategy;
+}
 
-    if (isOnCooldown) {
-      if (options.cooldownCallback) {
-        await options.cooldownCallback(ctx, bucket);
-      }
-
-      return false;
-    }
-
-    cooldownManager.recordCommandUse(ctx.interaction);
-    return true;
-  });
+export type CommandCooldownResult = {
+  bucket: CommandCooldownBucket;
+  isOnCooldown: boolean;
 };

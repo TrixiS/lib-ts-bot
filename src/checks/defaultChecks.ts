@@ -1,6 +1,11 @@
 import { commandCheckFactory } from "./checkFactory";
 import { CommandContext } from "../command";
 import { PermissionResolvable } from "discord.js";
+import type {
+  BaseCommandCooldownManager,
+  CommandCooldownBucket,
+  CommandCooldownManagerOptions,
+} from "./cooldown";
 
 export const guildOnlyCommand = () => {
   return commandCheckFactory(async ({ interaction }: CommandContext) => {
@@ -26,4 +31,47 @@ export const permittedCommand = (...permissions: PermissionResolvable[]) => {
       .map((permission) => resolvedMember.permissions.has(permission))
       .every((result) => result);
   });
+};
+
+export const commandCooldown = ({
+  cooldownManager: CooldownManager,
+  ...options
+}: CommandCooldownOptions) => {
+  let cooldownManager: InstanceType<typeof CooldownManager>;
+
+  return commandCheckFactory(async (ctx) => {
+    if (!cooldownManager) {
+      cooldownManager = new CooldownManager({
+        commandId: ctx.interaction.commandId!,
+        ...options,
+      });
+    }
+
+    const { bucket, isOnCooldown } =
+      await cooldownManager.checkCommandOnCooldown(ctx.interaction as any);
+
+    if (isOnCooldown) {
+      if (options.cooldownCallback) {
+        await options.cooldownCallback(ctx, bucket);
+      }
+
+      return false;
+    }
+
+    cooldownManager.recordCommandUse(ctx.interaction as any);
+    return true;
+  });
+};
+
+export type CommandCooldownOptions = Pick<
+  CommandCooldownManagerOptions,
+  "timeoutMs" | "maxUseCount" | "strategy"
+> & {
+  cooldownManager: new (
+    options: CommandCooldownManagerOptions
+  ) => BaseCommandCooldownManager;
+  cooldownCallback?: (
+    ctx: CommandContext,
+    bucket: CommandCooldownBucket
+  ) => Promise<unknown>;
 };
