@@ -2,13 +2,13 @@ import { commandCheckFactory } from "./checkFactory";
 import { CommandContext } from "../command";
 import { PermissionResolvable } from "discord.js";
 
-export const guildOnly = () => {
+export const guildOnlyCommand = () => {
   return commandCheckFactory(async ({ interaction }: CommandContext) => {
     return Boolean(interaction.guild && interaction.member);
   });
 };
 
-export const hasPermissions = (...permissions: PermissionResolvable[]) => {
+export const permittedCommand = (...permissions: PermissionResolvable[]) => {
   return commandCheckFactory(async ({ interaction }: CommandContext) => {
     if (!interaction.guild) {
       return false;
@@ -27,5 +27,3 @@ export const hasPermissions = (...permissions: PermissionResolvable[]) => {
       .every((result) => result);
   });
 };
-
-// TODO: default cooldown check
