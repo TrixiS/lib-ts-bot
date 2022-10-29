@@ -31,5 +31,5 @@ export type CommandHandler = {
   name: string;
   group?: string;
   checks: CommandCheck[];
-  autoDeferOptions?: InteractionDeferReplyOptions;
+  autoDeferOptions?: InteractionDeferReplyOptions | null;
 };

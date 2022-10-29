@@ -33,10 +33,10 @@ export class CommandHandlerExtension extends BaseExtension {
       return;
     }
 
-    if (commandHandler.autoDeferOptions) {
-      await interaction.deferReply(commandHandler.autoDeferOptions);
-    } else {
-      await interaction.deferReply({ ephemeral: true });
+    if (commandHandler.autoDeferOptions !== null) {
+      await interaction.deferReply(
+        commandHandler.autoDeferOptions ?? { ephemeral: true }
+      );
     }
 
     const ctx = await command.getContext(interaction);
