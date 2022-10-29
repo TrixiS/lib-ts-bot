@@ -14,8 +14,6 @@ import { DefaultMap } from "./utils/defaultMap";
 import { CommandCheck } from "./checks/checkFactory";
 import { CommandHandler } from "./commandHandler";
 
-export const runCallbackName = "run";
-
 export interface CommandBuilder {
   toJSON: () => ApplicationCommandDataResolvable;
   name: string;
@@ -111,7 +109,9 @@ export abstract class BaseSlashCommand<
     return {};
   }
 
-  public getContext(interaction: CommandInteraction): CommandContext {
+  public async getContext(
+    interaction: CommandInteraction
+  ): Promise<CommandContext> {
     const guild = interaction.guild ?? undefined;
     const member = guild?.members.cache.get(interaction.user.id);
 
@@ -120,12 +120,15 @@ export abstract class BaseSlashCommand<
         ? getCommandArgumentOptions(interaction)
         : {};
 
+    const data = await this.getData(interaction);
+
     return {
       client: this.extension.client,
       interaction,
       member,
       guild,
       options,
+      data,
     };
   }
 }
@@ -140,7 +143,7 @@ export type CommandContext<
   member?: GuildMember;
   guild?: Guild;
   options: O;
-  data?: D;
+  data: D;
 };
 
 export type CommandCallback = (ctx: CommandContext) => Promise<any>;

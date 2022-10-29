@@ -15,7 +15,7 @@ export class BotClient extends Client {
     return this._extensions;
   }
 
-  public get commands(): ReadonlyMap<string, Readonly<BaseSlashCommand>> {
+  public get commands(): ReadonlyMap<string, BaseSlashCommand> {
     return this._commands;
   }
 

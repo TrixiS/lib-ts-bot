@@ -1,12 +1,17 @@
 import { BaseExtension } from "../extension";
 import { eventHandler } from "../eventHandler";
-import { ChatInputCommandInteraction, Interaction } from "discord.js";
-import { BaseSlashCommand, CommandContext, runCallbackName } from "../command";
-import { CommandSubclass } from "../types";
+import {
+  ChatInputCommandInteraction,
+  CommandInteraction,
+  Interaction,
+} from "discord.js";
+import { BaseSlashCommand, CommandContext } from "../command";
 import { CommandHandler } from "../commandHandler";
 import { CommandCheck } from "../checks/checkFactory";
 
 export class CommandHandlerExtension extends BaseExtension {
+  protected readonly _defaultHandlerName = "run";
+
   @eventHandler("interactionCreate")
   async commandInteractionHandler(interaction: Interaction) {
     if (
@@ -22,45 +27,50 @@ export class CommandHandlerExtension extends BaseExtension {
       return;
     }
 
-    const ctx = command.getContext(interaction);
+    const commandHandler = this.getCommandHandler(command, interaction);
+
+    if (!commandHandler) {
+      return;
+    }
+
+    if (commandHandler.autoDeferOptions) {
+      await interaction.deferReply(commandHandler.autoDeferOptions);
+    } else {
+      await interaction.deferReply({ ephemeral: true });
+    }
+
+    const ctx = await command.getContext(interaction);
 
     if (!(await this.runChecks(ctx, command.checks))) {
       return;
     }
 
-    ctx.data = await command.getData(interaction);
+    await this.runHandler(command, ctx, commandHandler);
+  }
 
-    const defaultHandler = command.handlers.get(
-      runCallbackName as keyof CommandSubclass
-    );
-
-    const runDefaultHandler = async () => {
-      if (!defaultHandler) {
-        return;
-      }
-
-      return await this.runHandler(command, ctx, defaultHandler);
-    };
+  getCommandHandler(
+    command: BaseSlashCommand,
+    interaction: CommandInteraction
+  ) {
+    const defaultHandler = command.handlers.get(this._defaultHandlerName);
 
     if (!(interaction instanceof ChatInputCommandInteraction)) {
-      return await runDefaultHandler();
+      return defaultHandler;
     }
 
     const { group: subcommandGroup, name: subcommandName } =
       this.getSubcommandData(interaction);
 
     if (!subcommandName) {
-      return await runDefaultHandler();
+      return defaultHandler;
     }
 
-    const subcommandHandler: CommandHandler | undefined = command.handlers.find(
+    const subcommandHandler = command.handlers.find(
       (handler) =>
         handler.group == subcommandGroup && handler.name === subcommandName
     );
 
-    if (subcommandHandler) {
-      await this.runHandler(command, ctx, subcommandHandler);
-    }
+    return subcommandHandler ?? defaultHandler;
   }
 
   getSubcommandData(interaction: ChatInputCommandInteraction) {
@@ -69,10 +79,7 @@ export class CommandHandlerExtension extends BaseExtension {
     return { group, name };
   }
 
-  public async runChecks(
-    ctx: CommandContext,
-    checks: CommandCheck[] | ReadonlyArray<CommandCheck>
-  ) {
+  public async runChecks(ctx: CommandContext, checks: Iterable<CommandCheck>) {
     for (const check of checks) {
       if (!(await check(ctx))) {
         return false;
