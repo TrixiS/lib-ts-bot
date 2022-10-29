@@ -48,7 +48,7 @@ export const commandCooldown = ({
     }
 
     const { bucket, isOnCooldown } =
-      await cooldownManager.checkCommandOnCooldown(ctx.interaction as any);
+      await cooldownManager.checkCommandOnCooldown(ctx.interaction);
 
     if (isOnCooldown) {
       if (options.cooldownCallback) {
@@ -58,7 +58,7 @@ export const commandCooldown = ({
       return false;
     }
 
-    cooldownManager.recordCommandUse(ctx.interaction as any);
+    cooldownManager.recordCommandUse(ctx.interaction);
     return true;
   });
 };

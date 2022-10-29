@@ -23,7 +23,6 @@ export type CommandHandlerOptions = {
   group?: string;
 };
 
-// TODO: add check here
 // TODO: add parsed options converters as decorators as well e. g.
 //       factory for converter decorator -> @converter("optionName")
 
