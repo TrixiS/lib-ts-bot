@@ -10,14 +10,13 @@ export enum CommandCooldownStrategy {
 }
 
 export abstract class BaseCooldownManager<
-  T extends CooldownBucket,
-  O extends BaseCooldownManagerOptions
+  B extends CooldownBucket = CooldownBucket,
+  O extends BaseCooldownManagerOptions = BaseCooldownManagerOptions
 > {
   constructor(public readonly options: O) {}
 
-  protected abstract resetBucket(bucket: T): unknown;
-  protected abstract incrementUseCount(bucket: T): unknown;
-  protected abstract checkBucketOnCooldown(bucket: T): PromiseOrSync<boolean>;
+  protected abstract resetBucket(bucket: B): PromiseOrSync<unknown>;
+  protected abstract incrementUseCount(bucket: B): PromiseOrSync<unknown>;
 
   protected createExpirationDate(startDate: Date) {
     return new Date(startDate.getTime() + this.options.timeoutMs);
@@ -26,14 +25,6 @@ export abstract class BaseCooldownManager<
   protected createExpirationDateFromNow() {
     return this.createExpirationDate(new Date());
   }
-}
-
-export abstract class BaseCommandCooldownManager<
-  B extends CommandCooldownBucket = CommandCooldownBucket
-> extends BaseCooldownManager<B, CommandCooldownManagerOptions> {
-  protected abstract getBucket(
-    interaction: CommandInteraction
-  ): PromiseOrSync<B>;
 
   protected async checkBucketOnCooldown(bucket: B) {
     const now = new Date();
@@ -45,6 +36,14 @@ export abstract class BaseCommandCooldownManager<
 
     return bucket.useCount >= this.options.maxUseCount;
   }
+}
+
+export abstract class BaseCommandCooldownManager<
+  B extends CommandCooldownBucket = CommandCooldownBucket
+> extends BaseCooldownManager<B, CommandCooldownManagerOptions> {
+  protected abstract getBucket(
+    interaction: CommandInteraction
+  ): PromiseOrSync<B>;
 
   public async checkCommandOnCooldown(interaction: CommandInteraction) {
     const bucket = await this.getBucket(interaction);
