@@ -2,10 +2,12 @@ import { InteractionDeferReplyOptions } from "discord.js";
 import { CommandCheck } from "./checks/checkFactory";
 import { BaseSlashCommand, CommandCallback } from "./command";
 
-export const commandHandler = (
-  options: CommandHandlerOptions = {}
-): MethodDecorator => {
-  return (target, propertyKey, descriptor) => {
+export const commandHandler = (options: CommandHandlerOptions = {}) => {
+  return (
+    target: Object,
+    propertyKey: string | symbol,
+    descriptor: TypedPropertyDescriptor<CommandCallback>
+  ) => {
     options.name ??= propertyKey.toString();
 
     const handler: CommandHandler = {
