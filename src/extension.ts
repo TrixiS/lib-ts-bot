@@ -24,7 +24,7 @@ export abstract class BaseExtension {
     return BaseExtension._eventHandlers.get(this.constructor.name);
   }
 
-  private _wrapEventHandler<TEvent extends ClientEvent>(
+  private _wrapEventListener<TEvent extends ClientEvent>(
     handler: EventHandler<TEvent>
   ) {
     const listenerWrapper: EventListener<TEvent> = async (...args) => {
@@ -37,27 +37,19 @@ export abstract class BaseExtension {
       handler.listener.apply(this, args);
     };
 
-    handler.listener = listenerWrapper;
-    return handler;
+    return listenerWrapper;
   }
 
   private _registerEventHandlers() {
     const eventHandlers = this._getEventHandlers();
 
     eventHandlers.forEach((handler) => {
-      const wrappedEventHandler = this._wrapEventHandler(handler);
+      const wrappedEventListener = this._wrapEventListener(handler);
 
       handler.once
-        ? this.client.once(handler.event, wrappedEventHandler.listener)
-        : this.client.on(handler.event, wrappedEventHandler.listener);
+        ? this.client.once(handler.event, wrappedEventListener)
+        : this.client.on(handler.event, wrappedEventListener);
     });
-  }
-
-  private _unregisterEventHandlers() {
-    const eventHandlers = this._getEventHandlers();
-    eventHandlers.forEach((handler) =>
-      this.client.off(handler.event, handler.listener)
-    );
   }
 
   public get commands(): ReadonlyArray<BaseSlashCommand> {
@@ -73,9 +65,5 @@ export abstract class BaseExtension {
     await Promise.all(
       this._commands.map((command) => this.client.registerCommand(command))
     );
-  }
-
-  public async unregister() {
-    this._unregisterEventHandlers();
   }
 }
