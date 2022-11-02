@@ -11,7 +11,7 @@ export const commandHandler = (options: CommandHandlerOptions = {}) => {
     options.name ??= propertyKey.toString();
 
     const handler: CommandHandler = {
-      callback: descriptor.value as CommandCallback,
+      callback: descriptor.value!,
       checks: [],
       ...(options as CommandHandlerOptions & { name: string }),
     };
