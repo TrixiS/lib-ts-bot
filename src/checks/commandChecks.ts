@@ -5,7 +5,7 @@ import type {
   BaseCommandCooldownManager,
   CommandCooldownBucket,
   CommandCooldownManagerOptions,
-} from "./cooldown";
+} from "../cooldown";
 
 export const guildOnlyCommand = () => {
   return commandCheckFactory(async ({ interaction }: CommandContext) => {
