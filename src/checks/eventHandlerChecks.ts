@@ -1,6 +1,5 @@
+import { CustomId } from "../customId";
 import { eventHandlerCheckFactory } from "./checkFactory";
-
-// TODO: custom ID factory
 
 export const buttonInteractionHandler = () =>
   eventHandlerCheckFactory<"interactionCreate">(async (interaction) => {
@@ -15,4 +14,12 @@ export const selectMenuInteractionHandler = () =>
 export const modalSubmitInteractionHandler = () =>
   eventHandlerCheckFactory<"interactionCreate">(async (interaction) => {
     return interaction.isModalSubmit();
+  });
+
+export const checkCustomId = (customId: CustomId<any>) =>
+  eventHandlerCheckFactory<"interactionCreate">(async (interaction) => {
+    return (
+      interaction.isMessageComponent() &&
+      interaction.customId.startsWith(customId.prefix)
+    );
   });
