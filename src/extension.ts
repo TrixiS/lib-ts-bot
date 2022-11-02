@@ -13,7 +13,7 @@ export abstract class BaseExtension {
   private _commands: BaseSlashCommand[] = [];
 
   constructor(public readonly client: BotClient, commands?: CommandSubclass[]) {
-    this._registerEventHandlers();
+    // this._registerEventHandlers();
 
     if (commands && commands.length) {
       commands.forEach((Command) => this.addCommand(Command));
@@ -32,9 +32,9 @@ export abstract class BaseExtension {
         if (!(await check(...args))) {
           return;
         }
-
-        handler.listener.apply(this, args);
       }
+
+      handler.listener.apply(this, args);
     };
 
     handler.listener = listenerWrapper;
@@ -73,6 +73,8 @@ export abstract class BaseExtension {
     await Promise.all(
       this._commands.map((command) => this.client.registerCommand(command))
     );
+
+    this._registerEventHandlers();
   }
 
   public async unregister() {
