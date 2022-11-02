@@ -1,6 +1,7 @@
 import { BaseExtension } from "../extension";
 import { eventHandler } from "../eventHandler";
 import {
+  ButtonInteraction,
   ChatInputCommandInteraction,
   CommandInteraction,
   Interaction,
@@ -8,11 +9,12 @@ import {
 import { BaseSlashCommand, CommandContext } from "../command";
 import { CommandHandler } from "../commandHandler";
 import { CommandCheck } from "../checks/checkFactory";
+import { buttonInteractionHandler } from "../checks/eventHandlerChecks";
 
 export class CommandHandlerExtension extends BaseExtension {
   protected readonly _defaultHandlerName = "run";
 
-  @eventHandler("interactionCreate")
+  @eventHandler({ event: "interactionCreate" })
   async commandInteractionHandler(interaction: Interaction) {
     if (
       (!interaction.isChatInputCommand() || !interaction.command) &&

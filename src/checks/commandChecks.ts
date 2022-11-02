@@ -1,5 +1,5 @@
 import { commandCheckFactory } from "./checkFactory";
-import { CommandContext } from "../command";
+import { BaseSlashCommand, CommandContext } from "../command";
 import { PermissionResolvable } from "discord.js";
 import type {
   BaseCommandCooldownManager,

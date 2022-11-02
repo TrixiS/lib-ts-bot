@@ -5,7 +5,7 @@ export * from "./commandHandler";
 export * from "./eventHandler";
 export * from "./types";
 export * from "./checks/checkFactory";
-export * from "./checks/defaultChecks";
+export * from "./checks/commandChecks";
 export * from "./extensions/commandHandler";
 export * from "./utils/defaultMap";
 export * from "./utils/loader";
