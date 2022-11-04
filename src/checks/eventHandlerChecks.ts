@@ -18,8 +18,10 @@ export const modalSubmitInteractionHandler = () =>
 
 export const checkCustomId = (customId: CustomId<any>) =>
   eventHandlerCheckFactory<"interactionCreate">(async (interaction) => {
-    return (
-      interaction.isMessageComponent() &&
-      interaction.customId.startsWith(customId.prefix)
-    );
+    if (!interaction.isMessageComponent() && !interaction.isModalSubmit()) {
+      return false;
+    }
+
+    const { prefix } = customId.parse(interaction.customId);
+    return customId.prefix === prefix;
   });
