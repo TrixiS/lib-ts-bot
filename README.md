@@ -55,7 +55,7 @@ await client.registerExtension(TestExtension);
 ```
 
 ## CommandContext
-An object with command contextual data. Instances are created with BaseSlashCommand.getContext method
+An object with command contextual data. Instances are created with `BaseSlashCommand.getContext` method. Command handler callbacks get it as the first argument
 ```TypeScript
 type CommandContext<
   I extends CommandInteraction = CommandInteraction,
