@@ -166,7 +166,7 @@ await client.registerExtension(CommandHandlerExtension);
 ```
 
 ## Custom id factory
-Zod is used for data validation
+[Zod](https://github.com/colinhacks/zod) is used for data validation
 ```TypeScript
 ...
 import { CustomId, checkCustomId } from "@trixis/lib-ts-bot";
