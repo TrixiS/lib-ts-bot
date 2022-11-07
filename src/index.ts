@@ -8,7 +8,6 @@ export * from "./checks/checkFactory";
 export * from "./checks/commandChecks";
 export * from "./extensions/commandHandler";
 export * from "./utils/defaultMap";
-export * from "./utils/loader";
 export * from "./di/container";
 export * from "./di/decorators";
 export * from "./cooldown";
