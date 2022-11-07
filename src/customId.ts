@@ -7,7 +7,7 @@ export class CustomId<TSchema extends ZodObject<any>> {
 
   constructor(
     public readonly prefix: string,
-    public readonly schema: TSchema
+    public readonly schema?: TSchema
   ) {}
 
   public parse(customId: string) {
@@ -19,7 +19,11 @@ export class CustomId<TSchema extends ZodObject<any>> {
     return { prefix, data };
   }
 
-  public pack(data: z.infer<TSchema>) {
+  public pack(data?: z.infer<TSchema>) {
+    if (!data) {
+      return this.prefix;
+    }
+
     const dataJson = JSON.stringify(data);
     const packedData = `${this.prefix}${this._prefixDataSeparator}${dataJson}`;
 
@@ -35,6 +39,10 @@ export class CustomId<TSchema extends ZodObject<any>> {
 
     if (prefix !== this.prefix) {
       throw new Error("Invalid payload");
+    }
+
+    if (!this.schema) {
+      return {};
     }
 
     const unpackedData = JSON.parse(data);
