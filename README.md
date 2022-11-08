@@ -192,17 +192,22 @@ await client.registerExtension(CommandHandlerExtension);
 ```TypeScript
 ...
 import { CustomId, checkCustomId } from "@trixis/lib-ts-bot";
-import { z } from "zod";
 
-const testCustomId = new CustomId("test", z.object({ testId: z.number() }));
+const data = {
+  someId: 1
+};
+
+const testCustomId = new CustomId<typeof data>("test");
 
 class TestExtension extends BaseExtension {
-  @checkCustomId(testCustomId) // would check if interaction custom id is specified one
+  @checkCustomId(testCustomId) // would check if interaction custom id is the specified one
   @eventHandler("interactionCreate")
   async interactionHandler(interaction: Interaction) {
-      const data = testCustomId.unpack(interaction.customId);
-      console.log(data.testId);
-      // interaction type has no customId, it given here for example
+    // interaction type has no customId, it is given here for example
+    const data = testCustomId.unpack(interaction.customId);
+    console.log(data.testId);
+    const packedData = testCustomId.pack(data);
+    console.log(packedData);
   }
 }
 
