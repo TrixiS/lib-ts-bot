@@ -12,8 +12,7 @@
     "p": "pnpm run build && pnpm version patch && pnpm publish --access=public"
   },
   "dependencies": {
-    "discord.js": "14.6.0",
-    "zod": "^3.19.1"
+    "discord.js": "14.6.0"
   },
   "devDependencies": {
     "@types/node": "^18.11.0",
