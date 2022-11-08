@@ -6,7 +6,7 @@ export const commandHandler = (options: CommandHandlerOptions = {}) => {
   return (
     target: Object,
     propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<CommandCallback>
+    descriptor: PropertyDescriptor
   ) => {
     options.name ??= propertyKey.toString();
 
@@ -24,9 +24,6 @@ export const commandHandler = (options: CommandHandlerOptions = {}) => {
 
 export type CommandHandlerOptions = Partial<Pick<CommandHandler, "name">> &
   Pick<CommandHandler, "group" | "autoDeferOptions">;
-
-// TODO: add parsed options converters as decorators as well e. g.
-//       factory for converter decorator -> @converter("optionName")
 
 export type CommandHandler = {
   callback: CommandCallback;
