@@ -1,6 +1,6 @@
 import { Client, ClientOptions } from "discord.js";
-import { BaseExtension } from "./extension";
 import { BaseSlashCommand } from "./command";
+import { BaseExtension } from "./extension";
 import { ExtensionSubclass } from "./types";
 
 export class BotClient extends Client {

@@ -1,6 +1,6 @@
-import { BaseExtension } from "./extension";
 import { ClientEvents } from "discord.js";
 import { EventHandlerCheck } from "./checks/checkFactory";
+import { BaseExtension } from "./extension";
 
 export type ClientEvent = keyof ClientEvents;
 

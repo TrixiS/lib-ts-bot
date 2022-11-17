@@ -1,18 +1,18 @@
 import {
-  ApplicationCommandOptionType,
-  CommandInteraction,
-  ChatInputCommandInteraction,
-  CommandInteractionOption,
-  GuildMember,
-  Guild,
-  Collection,
   ApplicationCommandDataResolvable,
+  ApplicationCommandOptionType,
+  ChatInputCommandInteraction,
+  Collection,
+  CommandInteraction,
+  CommandInteractionOption,
+  Guild,
+  GuildMember,
 } from "discord.js";
+import { CommandCheck } from "./checks/checkFactory";
 import { BotClient } from "./client";
+import { CommandHandler } from "./commandHandler";
 import { BaseExtension } from "./extension";
 import { DefaultMap } from "./utils/defaultMap";
-import { CommandCheck } from "./checks/checkFactory";
-import { CommandHandler } from "./commandHandler";
 
 export interface CommandBuilder {
   toJSON: () => ApplicationCommandDataResolvable;

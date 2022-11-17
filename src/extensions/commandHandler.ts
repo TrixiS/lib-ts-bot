@@ -1,13 +1,13 @@
-import { BaseExtension } from "../extension";
-import { eventHandler } from "../eventHandler";
 import {
   ChatInputCommandInteraction,
   CommandInteraction,
   Interaction,
 } from "discord.js";
+import { CommandCheck } from "../checks/checkFactory";
 import { BaseSlashCommand, CommandContext } from "../command";
 import { CommandHandler } from "../commandHandler";
-import { CommandCheck } from "../checks/checkFactory";
+import { eventHandler } from "../eventHandler";
+import { BaseExtension } from "../extension";
 
 export class CommandHandlerExtension extends BaseExtension {
   protected readonly _defaultHandlerName = "run";

@@ -1,11 +1,11 @@
-import { commandCheckFactory } from "./checkFactory";
-import { BaseSlashCommand, CommandContext } from "../command";
 import { PermissionResolvable } from "discord.js";
+import { CommandContext } from "../command";
 import type {
   BaseCommandCooldownManager,
   CommandCooldownBucket,
-  CommandCooldownManagerOptions,
+  CommandCooldownManagerOptions
 } from "../cooldown";
+import { commandCheckFactory } from "./checkFactory";
 
 export const guildOnlyCommand = () => {
   return commandCheckFactory(async ({ interaction }: CommandContext) => {
