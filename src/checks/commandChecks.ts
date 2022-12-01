@@ -3,7 +3,7 @@ import { CommandContext } from "../command";
 import type {
   BaseCommandCooldownManager,
   CommandCooldownBucket,
-  CommandCooldownManagerOptions
+  CommandCooldownManagerOptions,
 } from "../cooldown";
 import { commandCheckFactory } from "./checkFactory";
 
