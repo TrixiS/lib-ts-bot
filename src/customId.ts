@@ -3,9 +3,14 @@ const customIdMaxLength = 100;
 export class CustomId<TData extends Record<string, any> = Record<string, any>> {
   constructor(public readonly prefix: string) {}
 
-  public parse(customId: string) {
+  public parse(customId: string): { prefix?: string; data?: string } {
     const prefix = customId.slice(0, this.prefix.length);
     const data = customId.substring(this.prefix.length);
+
+    if (data.length > 0 && !data.includes("{", 0)) {
+      return {};
+    }
+
     return { prefix, data };
   }
 
@@ -31,7 +36,7 @@ export class CustomId<TData extends Record<string, any> = Record<string, any>> {
       throw new Error("Invalid payload");
     }
 
-    if (!data.length) {
+    if (!data?.length) {
       return undefined;
     }
 
