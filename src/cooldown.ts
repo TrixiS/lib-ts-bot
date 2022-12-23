@@ -1,137 +1,130 @@
-import { CommandInteraction } from "discord.js";
+import { Collection } from "discord.js";
+import { nanoid } from "nanoid/async";
 
-type PromiseOrSync<T> = T | Promise<T>;
-
-export enum CommandCooldownStrategy {
+export enum CooldownStrategy {
   guild,
   member,
   channel,
   user,
 }
 
-export abstract class BaseCooldownManager<
-  B extends CooldownBucket = CooldownBucket,
-  O extends BaseCooldownManagerOptions = BaseCooldownManagerOptions
-> {
-  constructor(public readonly options: O) {}
-
-  protected abstract resetBucket(bucket: B): PromiseOrSync<unknown>;
-  protected abstract incrementUseCount(bucket: B): PromiseOrSync<unknown>;
-
-  protected createExpirationDate(startDate: Date) {
-    return new Date(startDate.getTime() + this.options.timeoutMs);
-  }
-
-  protected createExpirationDateFromNow() {
-    return this.createExpirationDate(new Date());
-  }
-
-  protected async checkBucketOnCooldown(bucket: B) {
-    const now = new Date();
-
-    if (bucket.expiresAt.getTime() <= now.getTime()) {
-      await this.resetBucket(bucket);
-      return false;
-    }
-
-    return bucket.useCount >= this.options.maxUseCount;
-  }
-}
-
-export abstract class BaseCommandCooldownManager<
-  B extends CommandCooldownBucket = CommandCooldownBucket
-> extends BaseCooldownManager<B, CommandCooldownManagerOptions> {
-  protected abstract getBucket(
-    interaction: CommandInteraction
-  ): PromiseOrSync<B>;
-
-  public async checkCommandOnCooldown(interaction: CommandInteraction) {
-    const bucket = await this.getBucket(interaction);
-    const isOnCooldown = await this.checkBucketOnCooldown(bucket);
-    return { bucket, isOnCooldown };
-  }
-
-  public async recordCommandUse(interaction: CommandInteraction) {
-    const bucket = await this.getBucket(interaction);
-    await this.incrementUseCount(bucket);
-  }
-}
-
-export class MemoryCommandCooldownManager extends BaseCommandCooldownManager {
-  private _buckets: CommandCooldownBucket[] = [];
-
-  private findBucket(interaction: CommandInteraction) {
-    const bucketFilter = (bucket: CommandCooldownBucket) => {
-      switch (this.options.strategy) {
-        case CommandCooldownStrategy.channel:
-          return bucket.channelId === interaction.channelId;
-        case CommandCooldownStrategy.guild:
-          return bucket.guildId === interaction.guildId;
-        case CommandCooldownStrategy.member:
-          return (
-            bucket.guildId === interaction.guildId &&
-            bucket.userId === interaction.user.id
-          );
-        case CommandCooldownStrategy.user:
-          return bucket.userId === interaction.user.id;
-      }
-    };
-
-    return this._buckets.find(bucketFilter);
-  }
-
-  protected getBucket(interaction: CommandInteraction) {
-    const bucket = this.findBucket(interaction);
-
-    if (bucket) {
-      return bucket;
-    }
-
-    const newBucket: CommandCooldownBucket = {
-      useCount: 0,
-      userId: interaction.user.id,
-      guildId: interaction.guildId ?? undefined,
-      channelId: interaction.channelId,
-      expiresAt: this.createExpirationDateFromNow(),
-    };
-
-    this._buckets.push(newBucket);
-    return newBucket;
-  }
-
-  protected resetBucket(bucket: CooldownBucket) {
-    bucket.useCount = 0;
-    bucket.expiresAt = this.createExpirationDateFromNow();
-  }
-
-  protected incrementUseCount(bucket: CooldownBucket) {
-    bucket.useCount++;
-  }
-}
-
 export interface CooldownBucket {
-  useCount: number;
+  readonly id: string;
+  readonly guildId?: string;
+  readonly userId?: string;
+  readonly channelId?: string;
+  readonly commandId?: string;
+  currentUseCount: number;
   expiresAt: Date;
 }
 
-export interface CommandCooldownBucket extends CooldownBucket {
-  userId: string;
-  guildId?: string | null;
-  channelId?: string | null;
+export type GetBucketOptions = Pick<
+  CooldownBucket,
+  "guildId" | "userId" | "channelId" | "commandId"
+>;
+
+export type CreateBucketOptions = GetBucketOptions & { timeoutMs: number };
+
+export interface BucketStorage {
+  findBucket: (
+    strategy: CooldownStrategy,
+    options: GetBucketOptions
+  ) => Promise<CooldownBucket>;
+  removeBucket: (bucketId: string) => Promise<void>;
+  recordUse: (bucketId: string) => Promise<void>;
 }
 
-export interface BaseCooldownManagerOptions {
-  readonly maxUseCount: number;
-  readonly timeoutMs: number;
-}
-
-export interface CommandCooldownManagerOptions
-  extends BaseCooldownManagerOptions {
-  commandId: string;
-  strategy: CommandCooldownStrategy;
-}
-
-export type CommandCooldownResult = {
-  bucket: CommandCooldownBucket;
-  isOnCooldown: boolean;
+export const getBucketExpirationDate = (options: {
+  currentDate?: Date;
+  timeoutMs: number;
+}) => {
+  const currentDate = options.currentDate ?? new Date();
+  return new Date(currentDate.getTime() + options.timeoutMs);
 };
+
+export class MemoryBucketStorage implements BucketStorage {
+  constructor(
+    public readonly maxUseCount: number,
+    public readonly timeoutMs: number
+  ) {}
+
+  private buckets: Collection<string, CooldownBucket> = new Collection();
+
+  private async createBucket(options: GetBucketOptions) {
+    const bucket: CooldownBucket = {
+      id: await nanoid(),
+      currentUseCount: 0,
+      expiresAt: getBucketExpirationDate({ timeoutMs: this.timeoutMs }),
+      ...options,
+    };
+
+    this.buckets.set(bucket.id, bucket);
+    return bucket;
+  }
+
+  public async findBucket(
+    strategy: CooldownStrategy,
+    options: GetBucketOptions
+  ) {
+    const cachedBucket = this.buckets.find(
+      (bucket) =>
+        bucket.guildId === options.guildId &&
+        bucket.channelId === options.channelId &&
+        bucket.userId === options.userId &&
+        bucket.commandId === options.commandId
+    );
+
+    if (cachedBucket) {
+      return cachedBucket;
+    }
+
+    return await this.createBucket(options);
+  }
+
+  public async removeBucket(bucketId: string) {
+    this.buckets.delete(bucketId);
+  }
+
+  public async recordUse(bucketId: string) {
+    const bucket = this.buckets.get(bucketId);
+
+    if (!bucket) {
+      return;
+    }
+
+    if (bucket.currentUseCount >= this.maxUseCount) {
+      bucket.expiresAt = getBucketExpirationDate({
+        currentDate: bucket.expiresAt,
+        timeoutMs: this.timeoutMs,
+      });
+
+      bucket.currentUseCount = 0;
+    }
+
+    bucket.currentUseCount += 1;
+  }
+}
+
+export class CooldownManager {
+  constructor(
+    public readonly strategy: CooldownStrategy,
+    public readonly storage: BucketStorage
+  ) {}
+
+  async checkBucketOnCooldown(options: GetBucketOptions) {
+    const bucket = await this.storage.findBucket(this.strategy, options);
+    const now = new Date();
+
+    if (now.getTime() >= bucket.expiresAt.getTime()) {
+      await this.storage.removeBucket(bucket.id);
+      return { isOnCooldown: false, bucket };
+    }
+
+    return { isOnCooldown: true, bucket };
+  }
+
+  async recordUse(options: GetBucketOptions) {
+    const bucket = await this.storage.findBucket(this.strategy, options);
+    await this.storage.recordUse(bucket.id);
+  }
+}

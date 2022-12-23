@@ -1,10 +1,6 @@
 import { PermissionResolvable } from "discord.js";
 import { CommandContext } from "../command";
-import type {
-  BaseCommandCooldownManager,
-  CommandCooldownBucket,
-  CommandCooldownManagerOptions,
-} from "../cooldown";
+import { CooldownBucket, CooldownManager, GetBucketOptions } from "../cooldown";
 import { commandCheckFactory } from "./checkFactory";
 
 export const guildOnlyCommand = () => {
@@ -34,44 +30,37 @@ export const permittedCommand = (...permissions: PermissionResolvable[]) => {
 };
 
 export const commandCooldown = ({
-  cooldownManager: CooldownManager,
-  ...options
+  cooldownManager,
+  cooldownCallback,
 }: CommandCooldownOptions) => {
-  let cooldownManager: InstanceType<typeof CooldownManager>;
-
   return commandCheckFactory(async (ctx) => {
-    if (!cooldownManager) {
-      cooldownManager = new CooldownManager({
-        commandId: ctx.interaction.commandId!,
-        ...options,
-      });
-    }
+    const getBucketOptions: GetBucketOptions = {
+      guildId: ctx.interaction.guildId ?? undefined,
+      channelId: ctx.interaction.channelId,
+      commandId: ctx.interaction.commandId,
+      userId: ctx.interaction.user.id,
+    };
 
     const { bucket, isOnCooldown } =
-      await cooldownManager.checkCommandOnCooldown(ctx.interaction);
+      await cooldownManager.checkBucketOnCooldown(getBucketOptions);
 
     if (isOnCooldown) {
-      if (options.cooldownCallback) {
-        await options.cooldownCallback(ctx, bucket);
+      if (cooldownCallback) {
+        await cooldownCallback(ctx, bucket);
       }
 
       return false;
     }
 
-    cooldownManager.recordCommandUse(ctx.interaction);
+    await cooldownManager.storage.recordUse(bucket.id);
     return true;
   });
 };
 
-export type CommandCooldownOptions = Pick<
-  CommandCooldownManagerOptions,
-  "timeoutMs" | "maxUseCount" | "strategy"
-> & {
-  cooldownManager: new (
-    options: CommandCooldownManagerOptions
-  ) => BaseCommandCooldownManager;
+export type CommandCooldownOptions = {
+  cooldownManager: CooldownManager;
   cooldownCallback?: (
     ctx: CommandContext,
-    bucket: CommandCooldownBucket
+    bucket: CooldownBucket
   ) => Promise<unknown>;
 };
