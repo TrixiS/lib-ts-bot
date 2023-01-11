@@ -4,6 +4,7 @@
   "description": "Package for Discord bots micro-framework template - https://github.com/TrixiS/base-ts-bot",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "files": [
     "/dist"
   ],
@@ -13,7 +14,7 @@
   },
   "dependencies": {
     "discord.js": "14.7.1",
-    "nanoid": "^4.0.0"
+    "nanoid": "3.x"
   },
   "devDependencies": {
     "@types/node": "^18.11.0",
