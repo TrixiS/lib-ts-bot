@@ -1,33 +1,6 @@
-import { PermissionResolvable } from "discord.js";
 import { CommandContext } from "../command";
 import { CooldownBucket, CooldownManager, GetBucketOptions } from "../cooldown";
 import { commandCheckFactory } from "./checkFactory";
-
-export const guildOnlyCommand = () => {
-  return commandCheckFactory(async ({ interaction }: CommandContext) => {
-    return Boolean(interaction.guild && interaction.member);
-  });
-};
-
-export const permittedCommand = (...permissions: PermissionResolvable[]) => {
-  return commandCheckFactory(async ({ interaction }: CommandContext) => {
-    if (!interaction.guild) {
-      return false;
-    }
-
-    const resolvedMember = interaction.guild.members.resolve(
-      interaction.user.id
-    );
-
-    if (!resolvedMember) {
-      return false;
-    }
-
-    return permissions
-      .map((permission) => resolvedMember.permissions.has(permission))
-      .every((result) => result);
-  });
-};
 
 export const commandCooldown = ({
   cooldownManager,
