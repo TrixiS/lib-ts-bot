@@ -4,7 +4,7 @@
   "description": "Package for Discord bots micro-framework template - https://github.com/TrixiS/base-ts-bot",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "module",
+  "type": "commonjs",
   "files": [
     "/dist"
   ],
