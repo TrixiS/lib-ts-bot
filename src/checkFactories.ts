@@ -1,9 +1,8 @@
 import { ClientEvents } from "discord.js";
-import { BaseSlashCommand, CommandContext } from "../command";
-import { CommandHandler } from "../commandHandler";
-import { ClientEvent, EventHandler } from "../eventHandler";
-import { BaseExtension } from "../extension";
-import { CommandSubclass } from "../types";
+import { BaseSlashCommand, CommandContext, CommandSubclass } from "./command";
+import { CommandHandler } from "./commandHandler";
+import { ClientEvent, EventHandler } from "./eventHandler";
+import { BaseExtension } from "./extension";
 
 export type CommandCheck = (ctx: CommandContext) => Promise<boolean>;
 

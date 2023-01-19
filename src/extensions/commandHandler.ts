@@ -3,7 +3,7 @@ import {
   CommandInteraction,
   Interaction,
 } from "discord.js";
-import { CommandCheck } from "../checks/checkFactory";
+import { CommandCheck } from "../checkFactories";
 import { BaseSlashCommand, CommandContext } from "../command";
 import { CommandHandler } from "../commandHandler";
 import { eventHandler } from "../eventHandler";
