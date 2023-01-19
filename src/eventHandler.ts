@@ -1,5 +1,6 @@
 import { ClientEvents } from "discord.js";
-import { EventHandlerCheck } from "./checks/checkFactory";
+import { EventHandlerCheck, eventHandlerCheckFactory } from "./checkFactories";
+import { CustomId } from "./customId";
 import { BaseExtension } from "./extension";
 
 export type ClientEvent = keyof ClientEvents;
@@ -38,3 +39,13 @@ export type EventHandler<TEvent extends ClientEvent> =
 export type EventListener<TEvent extends ClientEvent> = (
   ...args: ClientEvents[TEvent]
 ) => Promise<any>;
+
+export const checkCustomId = (customId: CustomId<any>) =>
+  eventHandlerCheckFactory<"interactionCreate">(async (interaction) => {
+    if (!interaction.isMessageComponent() && !interaction.isModalSubmit()) {
+      return false;
+    }
+
+    const { prefix } = customId.parse(interaction.customId);
+    return customId.prefix === prefix;
+  });

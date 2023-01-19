@@ -1,15 +1,50 @@
 import { Collection } from "discord.js";
 import { nanoid } from "nanoid/async";
+import { commandCheckFactory } from "./checkFactories";
+import { CommandContext } from "./command";
 
-export enum CooldownStrategy {
-  guild,
-  member,
-  channel,
-  user,
-}
+export const CooldownStrategies = [
+  "guild",
+  "member",
+  "channel",
+  "user",
+] as const;
 
-export interface CooldownBucket {
-  readonly id: string;
+export type CooldownStrategy = typeof CooldownStrategies[number];
+
+type CooldownStrategyResolver<BucketId> = (
+  bucket: CooldownBucket<BucketId>,
+  options: GetBucketOptions
+) => boolean;
+
+const createStrategyResolver = <BucketId>(
+  resolver: CooldownStrategyResolver<BucketId>
+): CooldownStrategyResolver<BucketId> => {
+  return (bucket, options) =>
+    bucket.commandId === options.commandId && resolver(bucket, options);
+};
+
+const cooldownStrategyResolvers: Record<
+  CooldownStrategy,
+  CooldownStrategyResolver<any>
+> = {
+  channel: createStrategyResolver(
+    (bucket, options) => bucket.channelId === options.channelId
+  ),
+  guild: createStrategyResolver(
+    (bucket, options) => bucket.guildId === options.guildId
+  ),
+  user: createStrategyResolver(
+    (bucket, options) => bucket.userId === options.userId
+  ),
+  member: createStrategyResolver(
+    (bucket, options) =>
+      bucket.guildId === options.guildId && bucket.userId === options.userId
+  ),
+} as const;
+
+export interface CooldownBucket<ID> {
+  readonly id: ID;
   readonly guildId?: string;
   readonly userId?: string;
   readonly channelId?: string;
@@ -19,19 +54,17 @@ export interface CooldownBucket {
 }
 
 export type GetBucketOptions = Pick<
-  CooldownBucket,
+  CooldownBucket<any>,
   "guildId" | "userId" | "channelId" | "commandId"
 >;
 
-export type CreateBucketOptions = GetBucketOptions & { timeoutMs: number };
-
-export interface BucketStorage {
+export interface BucketStorage<BucketId> {
   findBucket: (
     strategy: CooldownStrategy,
     options: GetBucketOptions
-  ) => Promise<CooldownBucket>;
-  removeBucket: (bucketId: string) => Promise<void>;
-  recordUse: (bucketId: string) => Promise<void>;
+  ) => Promise<CooldownBucket<BucketId>>;
+  removeBucket: (bucketId: BucketId) => Promise<void>;
+  recordUse: (bucketId: BucketId) => Promise<void>;
 }
 
 export const getBucketExpirationDate = (options: {
@@ -42,16 +75,17 @@ export const getBucketExpirationDate = (options: {
   return new Date(currentDate.getTime() + options.timeoutMs);
 };
 
-export class MemoryBucketStorage implements BucketStorage {
+export class MemoryBucketStorage implements BucketStorage<string> {
   constructor(
     public readonly maxUseCount: number,
     public readonly timeoutMs: number
   ) {}
 
-  private buckets: Collection<string, CooldownBucket> = new Collection();
+  private buckets: Collection<string, CooldownBucket<string>> =
+    new Collection();
 
   private async createBucket(options: GetBucketOptions) {
-    const bucket: CooldownBucket = {
+    const bucket: CooldownBucket<string> = {
       id: await nanoid(),
       currentUseCount: 0,
       expiresAt: getBucketExpirationDate({ timeoutMs: this.timeoutMs }),
@@ -66,12 +100,9 @@ export class MemoryBucketStorage implements BucketStorage {
     strategy: CooldownStrategy,
     options: GetBucketOptions
   ) {
-    const cachedBucket = this.buckets.find(
-      (bucket) =>
-        bucket.guildId === options.guildId &&
-        bucket.channelId === options.channelId &&
-        bucket.userId === options.userId &&
-        bucket.commandId === options.commandId
+    const resolver = cooldownStrategyResolvers[strategy];
+    const cachedBucket = this.buckets.find((bucket) =>
+      resolver(bucket, options)
     );
 
     if (cachedBucket) {
@@ -105,10 +136,10 @@ export class MemoryBucketStorage implements BucketStorage {
   }
 }
 
-export class CooldownManager {
+export class CooldownManager<BucketId> {
   constructor(
     public readonly strategy: CooldownStrategy,
-    public readonly storage: BucketStorage
+    public readonly storage: BucketStorage<BucketId>
   ) {}
 
   async checkBucketOnCooldown(options: GetBucketOptions) {
@@ -128,3 +159,39 @@ export class CooldownManager {
     await this.storage.recordUse(bucket.id);
   }
 }
+
+export const commandCooldown = <BucketId>({
+  cooldownManager,
+  cooldownCallback,
+}: CommandCooldownOptions<BucketId>) => {
+  return commandCheckFactory(async (ctx) => {
+    const getBucketOptions: GetBucketOptions = {
+      guildId: ctx.interaction.guildId ?? undefined,
+      channelId: ctx.interaction.channelId,
+      commandId: ctx.interaction.commandId,
+      userId: ctx.interaction.user.id,
+    };
+
+    const { bucket, isOnCooldown } =
+      await cooldownManager.checkBucketOnCooldown(getBucketOptions);
+
+    if (isOnCooldown) {
+      if (cooldownCallback) {
+        await cooldownCallback(ctx, bucket);
+      }
+
+      return false;
+    }
+
+    await cooldownManager.storage.recordUse(bucket.id);
+    return true;
+  });
+};
+
+export type CommandCooldownOptions<BucketId> = {
+  cooldownManager: CooldownManager<BucketId>;
+  cooldownCallback?: (
+    ctx: CommandContext,
+    bucket: CooldownBucket<BucketId>
+  ) => Promise<unknown>;
+};

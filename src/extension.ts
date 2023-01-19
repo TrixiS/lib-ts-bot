@@ -1,8 +1,10 @@
 import { BotClient } from "./client";
-import { BaseSlashCommand } from "./command";
+import { BaseSlashCommand, CommandSubclass } from "./command";
 import { ClientEvent, EventHandler, EventListener } from "./eventHandler";
-import { CommandSubclass } from "./types";
 import { DefaultMap } from "./utils/defaultMap";
+import { Subclass } from "./utils/subclass";
+
+export type ExtensionSubclass = Subclass<typeof BaseExtension>;
 
 export abstract class BaseExtension {
   private static _eventHandlers: DefaultMap<

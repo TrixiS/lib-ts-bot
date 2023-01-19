@@ -1,6 +1,4 @@
-export * from "./checks/checkFactory";
-export * from "./checks/commandChecks";
-export * from "./checks/eventHandlerChecks";
+export * from "./checkFactories";
 export * from "./client";
 export * from "./command";
 export * from "./commandHandler";
@@ -9,5 +7,4 @@ export * from "./customId";
 export * from "./eventHandler";
 export * from "./extension";
 export * from "./extensions/commandHandler";
-export * from "./types";
 export * from "./utils/defaultMap";

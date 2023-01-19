@@ -1,5 +1,5 @@
 import { InteractionDeferReplyOptions } from "discord.js";
-import { CommandCheck } from "./checks/checkFactory";
+import { CommandCheck } from "./checkFactories";
 import { BaseSlashCommand, CommandCallback } from "./command";
 
 export const commandHandler = (options: CommandHandlerOptions = {}) => {

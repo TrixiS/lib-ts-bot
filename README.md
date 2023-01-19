@@ -24,7 +24,7 @@ The library uses [TypeScript decorators](https://www.typescriptlang.org/docs/han
 
 ### Checks
 
-Checks are decorators used to register command guard predicates. There are several [check decorator factories](https://github.com/TrixiS/lib-ts-bot/blob/master/src/checks/checkFactory.ts):
+Checks are decorators used to register command guard predicates. There are several [check decorator factories](https://github.com/TrixiS/lib-ts-bot/blob/master/src/checkFactories.ts):
 
 - commandCheckFactory
 - commandHandlerCheckFactory

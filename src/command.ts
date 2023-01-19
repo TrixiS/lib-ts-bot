@@ -8,11 +8,14 @@ import {
   Guild,
   GuildMember,
 } from "discord.js";
-import { CommandCheck } from "./checks/checkFactory";
+import { CommandCheck } from "./checkFactories";
 import { BotClient } from "./client";
 import { CommandHandler } from "./commandHandler";
 import { BaseExtension } from "./extension";
 import { DefaultMap } from "./utils/defaultMap";
+import { Subclass } from "./utils/subclass";
+
+export type CommandSubclass = Subclass<typeof BaseSlashCommand<any>>;
 
 export interface CommandBuilder {
   toJSON: () => ApplicationCommandDataResolvable;
