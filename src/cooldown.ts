@@ -46,9 +46,9 @@ const cooldownStrategyResolvers: Record<
 export interface CooldownBucket<ID> {
   readonly id: ID;
   readonly guildId?: string;
-  readonly userId?: string;
+  readonly userId: string;
   readonly channelId?: string;
-  readonly commandId?: string;
+  readonly commandId: string;
   currentUseCount: number;
   expiresAt: Date;
 }
