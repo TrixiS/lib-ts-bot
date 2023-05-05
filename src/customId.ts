@@ -37,7 +37,7 @@ export class CustomId<TData extends Record<string, any> = Record<string, any>> {
     }
 
     if (!data?.length) {
-      return undefined;
+      return {} as TData;
     }
 
     const unpackedData = JSON.parse(data);

@@ -13,7 +13,7 @@
     "p": "pnpm run build && pnpm version patch && pnpm publish --access=public"
   },
   "dependencies": {
-    "discord.js": "14.9.0",
+    "discord.js": "14.10.2",
     "nanoid": "3.x"
   },
   "devDependencies": {
