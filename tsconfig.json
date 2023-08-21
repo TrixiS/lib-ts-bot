@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "ES2021",
+    "target": "ES6",
     "declaration": true,
     "outDir": "./dist",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "strict": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["./node_modules"]
+  "exclude": ["./node_modules/*"]
 }
